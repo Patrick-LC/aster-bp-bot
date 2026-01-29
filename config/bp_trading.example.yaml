@@ -1,0 +1,9 @@
+api_public_key_b64: "YOUR_BP_PUBLIC_KEY_BASE64"
+api_secret_key_b64: "YOUR_BP_SECRET_KEY_BASE64"
+base_url: "https://api.backpack.exchange"
+symbol: "ASTER_USDT"
+quantity: "10"
+window: 5000
+price_offset_percent: 0.2
+side_short_first: true
+debug: true

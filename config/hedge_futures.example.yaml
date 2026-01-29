@@ -1,0 +1,23 @@
+bp:
+  api_public_key_b64: "YOUR_BP_PUBLIC_KEY_BASE64"
+  api_secret_key_b64: "YOUR_BP_SECRET_KEY_BASE64"
+  base_url: "https://api.backpack.exchange"
+  symbol: "ASTER_USDC_PERP"
+  window: 5000
+  debug: true
+
+aster:
+  api_key: "YOUR_ASTER_API_KEY"
+  api_secret: "YOUR_ASTER_API_SECRET"
+  base_url: "https://fapi.asterdex.com"
+  symbol: "ASTERUSDT"
+  recv_window: 5000
+  debug: false
+
+trade:
+  quantity: "10"
+  offset_percent: 0.2
+  first_wait_seconds: 10
+  between_legs_sleep: 20
+  stop_before_funding_minutes: 5
+  cycle_sleep: 60
