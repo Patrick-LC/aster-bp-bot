@@ -8,3 +8,6 @@ allure-report/
 .env
 config/*.yaml
 !config/*.example.yaml
+
+# IDE
+.idea/
