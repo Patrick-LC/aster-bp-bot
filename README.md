@@ -40,18 +40,11 @@ python -m pip install -r requirements-dev.txt
 pytest -q --alluredir=allure-results
 ```
 
-### 開啟 Allure 報告（本機臨時服務）
+### 開啟 Allure 報告
 
 ```bash
 allure serve allure-results
 ```
-
-### 生成靜態報告（用於分享/作品集）
-
-```bash
-allure generate allure-results -o allure-report --clean
-```
-
 
 ---
 
