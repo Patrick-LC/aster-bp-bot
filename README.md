@@ -1,24 +1,30 @@
-# ASTER-BP Hedge Bot
-> ⚠️ 免責聲明：本倉庫包含交易/合約相關程式碼，僅用於學習與工程實作示範；請勿在未充分理解風險前用於真實資金。
+# ASTER–BP Hedge Bot (Python)
 
-這個腳本一開始只是跑對沖流程的腳本。隨著邏輯變複雜（重試、重掛、資金費率時間、各種 API 例外），我把它補上了 **可回歸的 QA 測試**，避免每次改動都靠人工盯盤與猜測：
-- **生產腳本**：Backpack（現貨）× Aster（合約）的對沖流程（含 funding time 的行為控制）
-- **測試資產**：pytest + fakes/stubs 隔離外部交易所依賴，並用 Allure 輸出可讀的測試報告
+本倉庫包含一個「Backpack 下單 + Aster Futures 對沖」的流程腳本，以及開發過程中為了降低回歸風險而補上的自動化測試。
 
----
+> 註：涉及交易/合約流程，程式碼以工程實作與測試示範為主；若要接真實資金請自行完整評估風險與權限設定。
 
-## 🧩 腳本背景與執行方式
+## 這個 Repo 有什麼
 
-本倉庫主要放的是腳本本體與我在開發過程中補上的測試。
+- **生產腳本**：`scripts/hedge_bp_aster_futures_loop.py`
+  - 兩段對沖 cycle（Leg1 / Leg2）
+  - 監控成交、取消重掛、處理 API 例外
+  - funding time 前的行為控制（避免時間敏感造成不確定性）
+- **測試資產**：`tests/`
+  - 用 `pytest` 做回歸測試
+  - 用 `fakes/` 隔離外部交易所依賴、用 `fixtures/` 固化測試資料
+  - 測試結果可輸出成 Allure 報告（方便 review）
 
-為避免 README 變得太長，關於「如何設定金鑰 / 執行合約對沖腳本」等使用說明放在：
+## 腳本使用說明（如何設定金鑰 / 執行）
+
+為避免 README 過長，腳本的設定與執行方式整理在：
 - `README_hedge_futures.md`
 
----
+## 測試與回歸（pytest）
 
-## ✅ 測試與回歸（pytest + Allure）
+這些測試是把開發時遇到的「不穩定/難重現情境」固定下來（例如：查單 404、成交狀態延遲、重掛後才成交、對沖下單失敗但流程仍需可預期），讓後續改動可以快速驗證行為有沒有跑掉。
 
-### 目錄結構（測試相關）
+### 目錄結構
 
 ```text
 tests/
@@ -34,32 +40,25 @@ tests/
 python -m pip install -r requirements-dev.txt
 ```
 
-### 執行測試並生成 Allure 資料
+### 執行測試
+
+```bash
+pytest -q
+```
+
+### 產出 Allure 測試資料
+
+如果你習慣把結果視覺化/留痕，可在執行時輸出 Allure results：
 
 ```bash
 pytest -q --alluredir=allure-results
 ```
 
-### 開啟 Allure 報告
+> Allure 的 report 產生/檢視方式依你的環境與安裝而定；本倉庫會保留 `allure-results/` 的輸出格式作為結果載體。
 
-```bash
-allure serve allure-results
-```
+## 對沖流程概覽
 
----
-
-## 📊 策略說明（合約對沖）
-
-**一輪循環（Cycle）**：
-1. **Leg1**：在 BP 以「最新價 + offset%」掛限價做空（Ask）；成交後在 Aster Futures 以市價 **BUY** 對沖
-2. 等待 `between_legs_sleep`
-3. **Leg2**：在 BP 以「最新價 - offset%」掛限價做多（Bid）；成交後在 Aster Futures 以市價 **SELL** 對沖
-4. 等待 `cycle_sleep`，進入下一輪
-
-**未成交處理**：
-- 訂單持續監控；達到閾值後取消並依最新價重掛（用於示範「重試/重掛/狀態機分支」）
-
-**Funding time**：
-- 計算下一個 funding 結算時間；可在結算前 N 分鐘停止下單，以降低不確定性
-
----
+- **Leg1**：BP 以「最新價 + offset%」掛限價做空；成交後在 Aster Futures 以市價 **BUY** 對沖
+- **Leg2**：BP 以「最新價 - offset%」掛限價做多；成交後在 Aster Futures 以市價 **SELL** 對沖
+- **未成交處理**：持續監控 → 逾時取消 → 依最新價重掛（用於覆蓋重試/重掛/狀態機分支）
+- **Funding time**：接近結算時間可停止下單（降低時間敏感的不確定性）
